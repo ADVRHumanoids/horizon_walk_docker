@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # Use a build argument for the ROS version
 ARG ROS_VERSION=noetic
 
@@ -8,17 +9,7 @@ FROM ros:${ROS_VERSION}-robot
 ARG ROS_VERSION
 
 # Update package lists and install dependencies
-RUN apt-get update 
-RUN apt-get install -y sudo 
-RUN apt-get install -y build-essential 
-RUN apt-get install -y gfortran
-RUN apt-get install -y git 
-RUN apt-get install -y curl 
-RUN apt-get install -y python3-tk 
-RUN apt-get install -y python3-pip 
-RUN apt-get install -y libjpeg-dev 
-RUN apt-get install -y wget 
-RUN apt-get install -y patchelf
+RUN apt-get update && apt-get install -y sudo build-essential gfortran git curl python3-tk python3-pip libjpeg-dev wget patchelf nano libglfw3-dev
 
 RUN apt-get install -y libassimp-dev liblapack-dev libblas-dev libyaml-cpp-dev libmatio-dev
 # require for cartesio_acceleration_support
@@ -30,6 +21,12 @@ RUN apt-get install -y ros-noetic-gazebo-ros-pkgs
 
 # Install ROS catkin tools
 RUN apt-get install -y ros-${ROS_VERSION}-catkin
+
+# Upgrade cmake for forest
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.31.4/cmake-3.31.4-linux-x86_64.tar.gz
+RUN tar -xvf cmake-3.31.4-linux-x86_64.tar.gz 
+RUN cd cmake-3.31.4-linux-x86_64 && sudo cp -r bin/* /usr/local/bin/
+RUN cd cmake-3.31.4-linux-x86_64 && sudo cp -r share/* /usr/local/share/
 
 # Upgrade pip and install the latest version of NumPy 
 # only required for ROS noetic
@@ -47,74 +44,76 @@ RUN python3 -c "import numpy; print('NumPy version:', numpy.__version__)"
 # Verify CMake installation
 RUN cmake --version
 
-# required for displaying matplotlib plots
-ENV DISPLAY :1
-# add user with sudo privileges which is not prompted for password
-RUN adduser --disabled-password --gecos '' user
-RUN adduser user sudo
-RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-USER user
-WORKDIR /home/user
-ENV PATH="/home/user/.local/bin:${PATH}"
+ARG USER_NAME=user
+# add user
+RUN adduser -u 1005 --disabled-password --gecos '' ${USER_NAME} \
+    && adduser ${USER_NAME} sudo \
+    && echo "${USER_NAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
+    && usermod -aG sudo ${USER_NAME} \
+    && mkdir -p /home/${USER_NAME}/.ssh \
+    && chmod 700 /home/${USER_NAME}/.ssh \
+    && touch /home/${USER_NAME}/.ssh/known_hosts \
+    && ssh-keyscan github.com >> /home/${USER_NAME}/.ssh/known_hosts \
+    && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.ssh
 
-# install catkin workspace
-WORKDIR /home/user/
-RUN mkdir -p kyon_ws/src
-RUN cd ~/kyon_ws && rosdep update && rosdep install --from-paths src --ignore-src -r -y
-RUN . /opt/ros/${ROS_VERSION}/setup.sh && cd ~/kyon_ws && catkin_make install
 
-# source workspace for ROS_PACKAGE_PATH (source catkin before other source)
-RUN echo "source ~/kyon_ws/devel/setup.bash" >> ~/.bashrc
+RUN mkdir -p ~/.ssh && chmod 0700 ~/.ssh && \
+ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
 
-# set up forest for installation
-RUN mkdir forest_ws
+RUN mkdir -p /home/${USER_NAME}/horizon_ws
+RUN chown ${USER_NAME} /home/${USER_NAME}/horizon_ws
 
-WORKDIR /home/user/forest_ws
+# update keys and install xbot2
+RUN sudo sh -c 'echo "deb http://xbot.cloud/xbot2/ubuntu/$(lsb_release -sc) /" > /etc/apt/sources.list.d/xbot-latest.list'
+RUN wget -q -O - http://xbot.cloud/xbot2/ubuntu/KEY.gpg | sudo apt-key add -
+RUN sudo apt-get update
+RUN sudo apt-get install -y xbot2_desktop_full
+
+user ${USER_NAME}
+ENV PATH="/home/${USER_NAME}/.local/bin:${PATH}"
+
+RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+RUN echo ". /opt/xbot/setup.sh" >> ~/.bashrc
+
+WORKDIR  /home/${USER_NAME}/horizon_ws
 RUN forest init 
 
 # source forest
-RUN echo "source ~/forest_ws/setup.bash" >> ~/.bashrc
+RUN echo "source ~/horizon_ws/setup.bash" >> ~/.bashrc
 
-# # restart bash to make the source effective
+# restart bash to make the source effective
 SHELL ["bash", "-ic"]
 
 RUN echo $ROS_PACKAGE_PATH
 
 # add recipes
-RUN forest add-recipes git@github.com:ADVRHumanoids/multidof_recipes.git --tag master
+RUN forest add-recipes git@github.com:ADVRHumanoids/multidof_recipes.git --clone-protocol https --tag fr_recipes
 
+# install pybind
 RUN forest grow pybind11 --clone-protocol https -j7
 
 # install horizon
-RUN forest grow horizon --clone-protocol https -j7 --verbose --tag receding_horizon
+RUN forest grow horizon --clone-protocol https -j7 --verbose
 
 # clone and install phase_manager
-RUN forest grow phase_manager --clone-protocol https -j7 --verbose --tag new_architecture
-
-# clone and install and xbot2_mujoco
-RUN forest grow xbot2_mujoco --clone-protocol https -j7 --verbose --tag 3.x
+RUN forest grow phase_manager --clone-protocol https -j7
 
 # clone and install and mujoco_cmake
-RUN forest grow mujoco_cmake --clone-protocol https -j7 --verbose --tag 3.x
+RUN forest grow mujoco_cmake --clone-protocol https -j7 --verbose
 
+RUN echo $CMAKE_PREFIX_PATH
 
-# WORKDIR /home/user/
-# update keys and install xbot2
-RUN sudo sh -c 'echo "deb http://xbot.cloud/xbot2/ubuntu/$(lsb_release -sc) /" > /etc/apt/sources.list.d/xbot-latest.list'
-RUN wget -q -O - http://xbot.cloud/xbot2/ubuntu/KEY.gpg | sudo apt-key add -
-RUN sudo apt-get update && sudo apt-get install -y xbot2_desktop_full
+# RUN --mount=type=ssh,uid=1005 git clone git@github.com:ADVRHumanoids/xbot2_mujoco.git
 
-# source xbot2 for ROS_PACKAGE_PATH
-RUN echo ". /opt/xbot/setup.sh" >> ~/.bashrc
+RUN --mount=type=ssh,uid=1005 forest grow xbot2_mujoco -j7
 
-# # restart bash to make the source effective
-SHELL ["bash", "-ic"]
-
+RUN sudo mkdir ros_src
 # clone talos robot utilities
-RUN cd ~/forest_ws/ros_src && git clone https://github.com/pal-robotics/talos_robot.git
+RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/pal-robotics/talos_robot.git
 
 # clone talos_mujoco
-RUN cd ~/forest_ws/ros_src && git clone https://github.com/hucebot/talos_cartesio_config.git
+RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/hucebot/talos_cartesio_config.git
 
 
-
+# restart bash to make the source effective
+SHELL ["bash", "-ic"]
