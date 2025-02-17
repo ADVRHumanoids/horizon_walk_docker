@@ -56,10 +56,6 @@ RUN adduser -u 1005 --disabled-password --gecos '' ${USER_NAME} \
     && ssh-keyscan github.com >> /home/${USER_NAME}/.ssh/known_hosts \
     && chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}/.ssh
 
-
-RUN mkdir -p ~/.ssh && chmod 0700 ~/.ssh && \
-ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-
 RUN mkdir -p /home/${USER_NAME}/horizon_ws
 RUN chown ${USER_NAME} /home/${USER_NAME}/horizon_ws
 
@@ -86,34 +82,48 @@ SHELL ["bash", "-ic"]
 
 RUN echo $ROS_PACKAGE_PATH
 
+RUN git config --global http.postBuffer 1048576000
+
 # add recipes
 RUN forest add-recipes git@github.com:ADVRHumanoids/multidof_recipes.git --clone-protocol https --tag fr_recipes
 
 # install pybind
 RUN forest grow pybind11 --clone-protocol https -j7
 
+# install hpp-fcl
+RUN forest grow hpp-fcl --clone-protocol https -j7
+
+#install pinocchio
+RUN forest grow pinocchio --clone-protoco https -j7
+
+# install casadi
+RUN forest grow casadi --clone-protocol https -j7
+
+# install casadi_kin_dyn
+# RUN forest grow casadi_kin_dyn --clone-protocol https -j7
+
 # install horizon
-RUN forest grow horizon --clone-protocol https -j7 --verbose
+# RUN forest grow horizon --clone-protocol https -j7
 
 # clone and install phase_manager
-RUN forest grow phase_manager --clone-protocol https -j7
+# RUN forest grow phase_manager --clone-protocol https -j7
 
 # clone and install and mujoco_cmake
-RUN forest grow mujoco_cmake --clone-protocol https -j7 --verbose
+# RUN forest grow mujoco_cmake --clone-protocol https -j7
 
-RUN echo $CMAKE_PREFIX_PATH
+# RUN echo $CMAKE_PREFIX_PATH
 
-# RUN --mount=type=ssh,uid=1005 git clone git@github.com:ADVRHumanoids/xbot2_mujoco.git
+# RUN forest grow xbot2_mujoco --clone-protocol https -j7
 
-RUN --mount=type=ssh,uid=1005 forest grow xbot2_mujoco -j7
+# RUN forest grow talos_horizon --clone-protocol https -j7
 
-RUN sudo mkdir ros_src
+# RUN sudo mkdir ros_src
 # clone talos robot utilities
-RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/pal-robotics/talos_robot.git
+# RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/pal-robotics/talos_robot.git
 
 # clone talos_mujoco
-RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/hucebot/talos_cartesio_config.git
+# RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/hucebot/talos_cartesio_config.git
 
 
 # restart bash to make the source effective
-SHELL ["bash", "-ic"]
+# SHELL ["bash", "-ic"]

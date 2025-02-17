@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-IMAGE=horizon_walk
+IMAGE=horizon_walk_talos
 NAME=hubble
 
 #  --privileged \
