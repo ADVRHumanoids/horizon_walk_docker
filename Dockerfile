@@ -82,7 +82,8 @@ SHELL ["bash", "-ic"]
 
 RUN echo $ROS_PACKAGE_PATH
 
-RUN git config --global http.postBuffer 1048576000
+# break cache for re-installation of casadi (to always download the last version)
+ARG CACHE_DATE="date"
 
 # add recipes
 RUN forest add-recipes git@github.com:ADVRHumanoids/multidof_recipes.git --clone-protocol https --tag fr_recipes
@@ -100,30 +101,29 @@ RUN forest grow pinocchio --clone-protoco https -j7
 RUN forest grow casadi --clone-protocol https -j7
 
 # install casadi_kin_dyn
-# RUN forest grow casadi_kin_dyn --clone-protocol https -j7
+RUN forest grow casadi_kin_dyn --clone-protocol https -j7
 
 # install horizon
-# RUN forest grow horizon --clone-protocol https -j7
+RUN forest grow horizon --clone-protocol https -j7
 
 # clone and install phase_manager
-# RUN forest grow phase_manager --clone-protocol https -j7
+RUN forest grow phase_manager --clone-protocol https -j7
 
 # clone and install and mujoco_cmake
-# RUN forest grow mujoco_cmake --clone-protocol https -j7
+RUN forest grow mujoco_cmake --clone-protocol https -j7
 
-# RUN echo $CMAKE_PREFIX_PATH
+RUN echo $CMAKE_PREFIX_PATH
 
-# RUN forest grow xbot2_mujoco --clone-protocol https -j7
+RUN forest grow xbot2_mujoco --clone-protocol https -j7
 
-# RUN forest grow talos_horizon --clone-protocol https -j7
+RUN forest grow talos_horizon --clone-protocol https -j7
 
-# RUN sudo mkdir ros_src
+RUN sudo mkdir ros_src
 # clone talos robot utilities
-# RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/pal-robotics/talos_robot.git
+RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/pal-robotics/talos_robot.git
 
 # clone talos_mujoco
-# RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/hucebot/talos_cartesio_config.git
-
+RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/hucebot/talos_cartesio_config.git
 
 # restart bash to make the source effective
 # SHELL ["bash", "-ic"]
