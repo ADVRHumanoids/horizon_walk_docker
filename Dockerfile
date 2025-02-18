@@ -4,16 +4,15 @@ ARG ROS_VERSION=noetic
 
 # Use the specified ROS version as the base image
 FROM ros:${ROS_VERSION}-robot
+ENV DEBIAN_FRONTEND=noninteractive
 
 # after every FROM statement, all the ARGs are no longer available, this solves it:
 ARG ROS_VERSION
 
 # Update package lists and install dependencies
 RUN apt-get update && apt-get install -y sudo build-essential gfortran \
-    git curl python3-tk python3-pip libjpeg-dev wget patchelf nano libglfw3-dev
-
-# install terminator
-# RUN apt-get install -y terminator
+    git curl python3-tk python3-pip libjpeg-dev wget patchelf nano libglfw3-dev \
+    locate terminator gedit
 
 RUN apt-get install -y libassimp-dev liblapack-dev libblas-dev libyaml-cpp-dev libmatio-dev
 # require for cartesio_acceleration_support
