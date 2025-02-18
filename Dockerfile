@@ -26,6 +26,9 @@ RUN apt-get install -y ros-noetic-gazebo-ros-pkgs
 # Install ROS catkin tools
 RUN apt-get install -y ros-${ROS_VERSION}-catkin
 
+# install graphviz-dev for horizon urdf modifier
+RUN apt-get install -y graphviz-dev
+
 # Upgrade cmake for forest
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.31.4/cmake-3.31.4-linux-x86_64.tar.gz
 RUN tar -xvf cmake-3.31.4-linux-x86_64.tar.gz 
@@ -35,12 +38,14 @@ RUN cd cmake-3.31.4-linux-x86_64 && sudo cp -r share/* /usr/local/share/
 # Upgrade pip and install the latest version of NumPy 
 # only required for ROS noetic
 RUN pip3 install --upgrade pip \
-    && pip3 install --upgrade numpy
+    && pip3 install --upgrade numpy \
+    && pip3 install --upgrade scipy
 
 RUN pip3 install hhcm-forest
 
 # required packages
-RUN pip3 install scipy numpy_ros matplotlib
+RUN pip3 install numpy_ros matplotlib
+RUN pip3 install colorama Cython networkx pygraphviz
 
 # Check NumPy version
 RUN python3 -c "import numpy; print('NumPy version:', numpy.__version__)"
