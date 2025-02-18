@@ -9,7 +9,8 @@ FROM ros:${ROS_VERSION}-robot
 ARG ROS_VERSION
 
 # Update package lists and install dependencies
-RUN apt-get update && apt-get install -y sudo build-essential gfortran git curl python3-tk python3-pip libjpeg-dev wget patchelf nano libglfw3-dev
+RUN apt-get update && apt-get install -y sudo build-essential gfortran \
+    git curl python3-tk python3-pip libjpeg-dev wget patchelf nano libglfw3-dev
 
 # install terminator
 # RUN apt-get install -y terminator
@@ -98,7 +99,7 @@ RUN forest grow pybind11 --clone-protocol https -j7
 RUN forest grow hpp-fcl --clone-protocol https -j7
 
 #install pinocchio
-RUN forest grow pinocchio --clone-protoco https -j7
+RUN forest grow pinocchio --clone-protocol https -j7
 
 # install casadi
 RUN forest grow casadi --clone-protocol https -j7
@@ -132,5 +133,6 @@ RUN cd ~/horizon_ws/ros_src && git clone --single-branch --branch ${TALOS_ROBOT_
 ARG TALOS_CARTESIO_CONFIG=horizon_demo
 RUN cd ~/horizon_ws/ros_src && git clone --single-branch --branch ${TALOS_CARTESIO_CONFIG} https://github.com/hucebot/talos_cartesio_config.git
 
+RUN sudo apt update && apt install -y mesa-utils
 # restart bash to make the source effective
 SHELL ["bash", "-ic"]

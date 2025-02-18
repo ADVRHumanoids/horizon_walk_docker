@@ -6,6 +6,7 @@ NAME=hubble
 #  --privileged \
 #  -v /dev/input:/dev/input \
 
+xhost +local:docker
 docker run -it --rm \
             --env DISPLAY=$DISPLAY \
             --runtime=nvidia \
