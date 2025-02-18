@@ -11,6 +11,9 @@ ARG ROS_VERSION
 # Update package lists and install dependencies
 RUN apt-get update && apt-get install -y sudo build-essential gfortran git curl python3-tk python3-pip libjpeg-dev wget patchelf nano libglfw3-dev
 
+# install terminator
+# RUN apt-get install -y terminator
+
 RUN apt-get install -y libassimp-dev liblapack-dev libblas-dev libyaml-cpp-dev libmatio-dev
 # require for cartesio_acceleration_support
 RUN apt-get install -y ros-${ROS_VERSION}-interactive-markers ros-${ROS_VERSION}-moveit
@@ -83,7 +86,7 @@ SHELL ["bash", "-ic"]
 RUN echo $ROS_PACKAGE_PATH
 
 # break cache for re-installation of casadi (to always download the last version)
-ARG CACHE_DATE="date"
+# ARG CACHE_DATE="date"
 
 # add recipes
 RUN forest add-recipes git@github.com:ADVRHumanoids/multidof_recipes.git --clone-protocol https --tag fr_recipes
@@ -118,12 +121,16 @@ RUN forest grow xbot2_mujoco --clone-protocol https -j7
 
 RUN forest grow talos_horizon --clone-protocol https -j7
 
-RUN sudo mkdir ros_src
-# clone talos robot utilities
-RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/pal-robotics/talos_robot.git
+ARG TALOS_ROBOT_BRANCH=1.1.32
+ARG TALOS_CARTESIO_CONFIG_BRANCH=horizon_demo
 
-# clone talos_mujoco
-RUN cd ~/horizon_ws/ros_src && sudo git clone https://github.com/hucebot/talos_cartesio_config.git
+RUN mkdir ros_src
+# # clone talos robot utilities
+RUN cd ~/horizon_ws/ros_src && git clone --single-branch --branch ${TALOS_ROBOT_BRANCH} https://github.com/pal-robotics/talos_robot.git
+
+# # clone talos_mujoco
+ARG TALOS_CARTESIO_CONFIG=horizon_demo
+RUN cd ~/horizon_ws/ros_src && git clone --single-branch --branch ${TALOS_CARTESIO_CONFIG} https://github.com/hucebot/talos_cartesio_config.git
 
 # restart bash to make the source effective
-# SHELL ["bash", "-ic"]
+SHELL ["bash", "-ic"]
