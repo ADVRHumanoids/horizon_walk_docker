@@ -141,6 +141,6 @@ RUN cd ~/horizon_ws/ros_src && git clone --single-branch --branch ${TALOS_ROBOT_
 ARG TALOS_CARTESIO_CONFIG=horizon_demo
 RUN cd ~/horizon_ws/ros_src && git clone --single-branch --branch ${TALOS_CARTESIO_CONFIG} https://github.com/hucebot/talos_cartesio_config.git
 
-RUN sudo apt update && apt install -y mesa-utils
+RUN sudo apt update && sudo apt install -y mesa-utils
 # restart bash to make the source effective
 SHELL ["bash", "-ic"]
