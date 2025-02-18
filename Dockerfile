@@ -26,6 +26,9 @@ RUN apt-get install -y ros-noetic-gazebo-ros-pkgs
 # Install ROS catkin tools
 RUN apt-get install -y ros-${ROS_VERSION}-catkin
 
+# install joy
+RUN apt-get install -y ros-${ROS_VERSION}-joy
+
 # install graphviz-dev for horizon urdf modifier
 RUN apt-get install -y graphviz-dev
 
