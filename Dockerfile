@@ -22,6 +22,8 @@ RUN apt-get install -y ros-${ROS_VERSION}-interactive-markers ros-${ROS_VERSION}
 RUN apt-get install -y swig
 # required for realsense
 RUN apt-get install -y ros-noetic-gazebo-ros-pkgs
+# clang to generate mpc functions in c++
+RUN apt-get install -y clang
 
 # Install ROS catkin tools
 RUN apt-get install -y ros-${ROS_VERSION}-catkin
