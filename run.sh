@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-IMAGE=horizon_walk_talos
+IMAGE=horizon_walk_docker
 NAME=hubble
 
 #  --privileged \
