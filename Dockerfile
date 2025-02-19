@@ -57,9 +57,14 @@ RUN python3 -c "import numpy; print('NumPy version:', numpy.__version__)"
 # Verify CMake installation
 RUN cmake --version
 
+
+ARG HOST_UID
+RUN test -n "$HOST_UID"
+#RUN addgroup --gid $HOST_UID groupcontainer
+
 ARG USER_NAME=user
 # add user
-RUN adduser -u 1005 --disabled-password --gecos '' ${USER_NAME} \
+RUN adduser --uid $HOST_UID --disabled-password --gecos '' ${USER_NAME} \
     && adduser ${USER_NAME} sudo \
     && echo "${USER_NAME} ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers \
     && usermod -aG sudo ${USER_NAME} \
@@ -142,6 +147,13 @@ RUN cd ~/horizon_ws/ros_src && git clone --single-branch --branch ${TALOS_ROBOT_
 ARG TALOS_CARTESIO_CONFIG=horizon_demo
 RUN cd ~/horizon_ws/ros_src && git clone --single-branch --branch ${TALOS_CARTESIO_CONFIG} https://github.com/hucebot/talos_cartesio_config.git
 
-RUN sudo apt update && sudo apt install -y mesa-utils
+RUN sudo apt-get update && sudo apt-get install -y mesa-utils
 # restart bash to make the source effective
 SHELL ["bash", "-ic"]
+
+RUN set_xbot2_config /home/user/horizon_ws/ros_src/talos_cartesio_config/mujoco/xbot2/hal/talos_mj.yaml
+
+RUN echo 'export __NV_PRIME_RENDER_OFFLOAD=1' >> ~/.bashrc
+RUN echo 'export __GLX_VENDOR_LIBRARY_NAME=nvidia' >> ~/.bashrc
+RUN echo 'export __VK_LAYER_NV_optimus=NVIDIA_only' >> ~/.bashrc
+RUN echo 'export VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/nvidia_icd.json' >> ~/.bashrc
