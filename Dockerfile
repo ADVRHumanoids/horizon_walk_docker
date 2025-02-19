@@ -151,7 +151,7 @@ RUN sudo apt-get update && sudo apt-get install -y mesa-utils
 # restart bash to make the source effective
 SHELL ["bash", "-ic"]
 
-RUN set_xbot2_config /home/user/horizon_ws/ros_src/talos_cartesio_config/mujoco/xbot2/hal/talos_mj.yaml
+RUN set_xbot2_config /home/user/horizon_ws/ros_src/talos_cartesio_config/mujoco/xbot2/talos.yaml
 
 RUN echo 'export __NV_PRIME_RENDER_OFFLOAD=1' >> ~/.bashrc
 RUN echo 'export __GLX_VENDOR_LIBRARY_NAME=nvidia' >> ~/.bashrc
